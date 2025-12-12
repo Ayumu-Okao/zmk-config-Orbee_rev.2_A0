@@ -37,3 +37,7 @@
         input-behavior = <&touch_behavior_3>;
     };
 };
+
+&pmw3610 {
+    status = "disabled";
+};
