@@ -5,18 +5,30 @@
 };
 
 &kscan0 {
-        col-gpios =
-            <&xiao_d 10 GPIO_ACTIVE_HIGH>,
-            <&xiao_d 9 GPIO_ACTIVE_HIGH>,
-            <&xiao_d 8 GPIO_ACTIVE_HIGH>,
-            <&xiao_d 7 GPIO_ACTIVE_HIGH>,
-            <&gpio0 10 GPIO_ACTIVE_HIGH>;
+    col-gpios =
+        <&xiao_d 10 GPIO_ACTIVE_HIGH>,
+        <&xiao_d 9 GPIO_ACTIVE_HIGH>,
+        <&xiao_d 8 GPIO_ACTIVE_HIGH>,
+        <&xiao_d 7 GPIO_ACTIVE_HIGH>,
+        <&gpio0 10 GPIO_ACTIVE_HIGH>;
 };
 
- / {
+/ {
     trackball_listener {
         compatible = "zmk,input-listener";
         device = <&trackball>;
+    };
+
+    zmk_pointer_x_axis: zmk-pointer-x-axis {
+        compatible = "zmk,pointer-axis";
+        hid-usage = <0x01 0x30>; // HID Usage for X (Generic Desktop Page)
+        scroll-divisor = <1>;
+    };
+
+    zmk_pointer_y_axis: zmk-pointer-y-axis {
+        compatible = "zmk,pointer-axis";
+        hid-usage = <0x01 0x31>; // HID Usage for Y (Generic Desktop Page)
+        scroll-divisor = <1>;
     };
 };
 
@@ -57,5 +69,8 @@
 
         automouse-layer = <6>;
         scroll-layers = <5>;
+        
+        zephyr,axis-x = <&zmk_pointer_x_axis>;
+        zephyr,axis-y = <&zmk_pointer_y_axis>;
     };
 };
