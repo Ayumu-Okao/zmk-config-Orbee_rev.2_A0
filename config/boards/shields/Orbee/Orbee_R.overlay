@@ -1,36 +1,53 @@
-&pinctrl {
-    spi0_default: spi0_default {
-        group1 {
-            // SCK, MOSI, MISO のピン設定
-            psels = <NRF_PSEL(SPIM_SCK, 0, 5)>,
-                    <NRF_PSEL(SPIM_MOSI, 0, 4)>,
-                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
-        };
+#include "Orbee.dtsi"
+
+// 💡 修正箇所 1: 軸の定義をファイルの冒頭に移動
+/ {
+    trackball_listener {
+        compatible = "zmk,input-listener";
+        device = <&trackball>;
     };
 
-    spi0_sleep: spi0_sleep {
-        group1 {
-            // SCK, MOSI, MISO のピン設定 (スリープ時)
-            psels = <NRF_PSEL(SPIM_SCK, 0, 5)>,
-                    <NRF_PSEL(SPIM_MOSI, 0, 4)>,
-                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
-            low-power-enable;
-        };
+    // ZMKのスクロール軸の定義 (PMW3610ノードが参照する)
+    zmk_scroll_x_axis: zmk-scroll-x-axis {
+        compatible = "zmk,scroll-axis";
+        hid-usage = <0x01 0x30>; // X
+        scroll-divisor = <1>;
     };
+
+    zmk_scroll_y_axis: zmk-scroll-y-axis {
+        compatible = "zmk,scroll-axis";
+        hid-usage = <0x01 0x31>; // Y
+        scroll-divisor = <1>;
+    };
+    
+    // ZMKのポインティングシステムに軸を登録するためのノード
+    zmk_pointer_axes {
+        compatible = "zmk,pointer-axes";
+        pointer-axes = <&zmk_scroll_x_axis &zmk_scroll_y_axis>;
+    };
+};
+
+&default_transform {
+    col-offset = <6>;
+};
+
+&kscan0 {
+    // ... (kscan0 の定義) ...
+};
+
+&pinctrl {
+    // ... (pinctrl の定義) ...
 };
 
 &spi0 {
     compatible = "nordic,nrf-spim";
 
-    // 🚨 必須プロパティは 'status' の前に記述するのが安全
     pinctrl-0 = <&spi0_default>;
     pinctrl-1 = <&spi0_sleep>;
     pinctrl-names = "default", "sleep";
     
-    // 最後にノードを有効化
     status = "okay"; 
 
-    // チップセレクト (CS) のピン定義
     cs-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
 
     trackball: trackball@0 {
@@ -42,7 +59,7 @@
         automouse-layer = <6>;
         scroll-layers = <5>;
         
-        // PMW3610の必須プロパティ（スクロール軸）
+        // 💡 修正箇所 2: 参照されるノードが先に定義されたため、エラーが解消される
         zephyr,axis-x = <&zmk_scroll_x_axis>;
         zephyr,axis-y = <&zmk_scroll_y_axis>;
     };
