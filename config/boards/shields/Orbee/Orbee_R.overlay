@@ -1,47 +1,88 @@
 #include "Orbee.dtsi"
 
-// 💡 修正箇所 1: 軸の定義をファイルの冒頭に移動
+// =================================================================
+// 1. ZMKのポインティング軸定義（ファイル内で最初期に定義）
+//    -> &trackball ノードから参照されるため、一番上に配置
+// =================================================================
+
 / {
+    // トラックボール入力リスナー
     trackball_listener {
         compatible = "zmk,input-listener";
         device = <&trackball>;
     };
 
-    // ZMKのスクロール軸の定義 (PMW3610ノードが参照する)
+    // ZMKのスクロール軸の定義
     zmk_scroll_x_axis: zmk-scroll-x-axis {
         compatible = "zmk,scroll-axis";
-        hid-usage = <0x01 0x30>; // X
+        hid-usage = <0x01 0x30>; // X軸
         scroll-divisor = <1>;
     };
 
     zmk_scroll_y_axis: zmk-scroll-y-axis {
         compatible = "zmk,scroll-axis";
-        hid-usage = <0x01 0x31>; // Y
+        hid-usage = <0x01 0x31>; // Y軸
         scroll-divisor = <1>;
     };
     
-    // ZMKのポインティングシステムに軸を登録するためのノード
+    // ZMKのポインティングシステムに軸を登録
     zmk_pointer_axes {
         compatible = "zmk,pointer-axes";
         pointer-axes = <&zmk_scroll_x_axis &zmk_scroll_y_axis>;
     };
 };
 
+// =================================================================
+// 2. ピンコントロールの定義（SPIノードが参照するため、spi0より上に配置）
+// =================================================================
+
+&pinctrl {
+    // 💡 spi0_default ノードの定義
+    spi0_default: spi0_default {
+        group1 {
+            // SCK, MOSI, MISO のピン設定
+            psels = <NRF_PSEL(SPIM_SCK, 0, 5)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 4)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
+        };
+    };
+
+    // 💡 spi0_sleep ノードの定義
+    spi0_sleep: spi0_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 5)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 4)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
+            low-power-enable;
+        };
+    };
+};
+
+// =================================================================
+// 3. その他の基本的な定義
+// =================================================================
+
 &default_transform {
     col-offset = <6>;
 };
 
 &kscan0 {
-    // ... (kscan0 の定義) ...
+    col-gpios =
+        <&xiao_d 10 GPIO_ACTIVE_HIGH>,
+        <&xiao_d 9 GPIO_ACTIVE_HIGH>,
+        <&xiao_d 8 GPIO_ACTIVE_HIGH>,
+        <&xiao_d 7 GPIO_ACTIVE_HIGH>,
+        <&gpio0 10 GPIO_ACTIVE_HIGH>;
 };
 
-&pinctrl {
-    // ... (pinctrl の定義) ...
-};
+// =================================================================
+// 4. SPIバスとトラックボールの定義（ピンコントロールと軸定義を参照）
+// =================================================================
 
 &spi0 {
     compatible = "nordic,nrf-spim";
 
+    // pinctrl-* の必須プロパティは、定義された pinctrl ノードを参照する
     pinctrl-0 = <&spi0_default>;
     pinctrl-1 = <&spi0_sleep>;
     pinctrl-names = "default", "sleep";
@@ -59,7 +100,7 @@
         automouse-layer = <6>;
         scroll-layers = <5>;
         
-        // 💡 修正箇所 2: 参照されるノードが先に定義されたため、エラーが解消される
+        // ZMK/Zephyrドライバーの要件を満たすため、軸定義を参照する
         zephyr,axis-x = <&zmk_scroll_x_axis>;
         zephyr,axis-y = <&zmk_scroll_y_axis>;
     };
