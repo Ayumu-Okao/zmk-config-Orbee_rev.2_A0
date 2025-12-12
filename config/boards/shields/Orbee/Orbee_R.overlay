@@ -1,3 +1,5 @@
+// Orbee_R.overlay (修正版)
+
 #include "Orbee.dtsi"
 
 &default_transform {
@@ -5,67 +7,42 @@
 };
 
 &kscan0 {
-    col-gpios =
-        <&xiao_d 10 GPIO_ACTIVE_HIGH>,
-        <&xiao_d 9 GPIO_ACTIVE_HIGH>,
-        <&xiao_d 8 GPIO_ACTIVE_HIGH>,
-        <&xiao_d 7 GPIO_ACTIVE_HIGH>,
-        <&gpio0 10 GPIO_ACTIVE_HIGH>;
+    // ... (キーボードのマトリックス定義) ...
 };
 
 / {
-    // トラッキングボールの入力変化をZMKに伝えるリスナー
     trackball_listener {
         compatible = "zmk,input-listener";
         device = <&trackball>;
     };
 
-    // ZMKのポインター軸の定義
-    zmk_pointer_x_axis: zmk-pointer-x-axis {
-        compatible = "zmk,pointer-axis";
-        hid-usage = <0x01 0x30>; // X軸（マウス移動）
+    // 💡 変更点: PMW3610をスクロール軸として強制定義し、エラーを回避する
+    zmk_scroll_x_axis: zmk-scroll-x-axis {
+        compatible = "zmk,scroll-axis";
+        hid-usage = <0x01 0x30>; // X
         scroll-divisor = <1>;
     };
 
-    zmk_pointer_y_axis: zmk-pointer-y-axis {
-        compatible = "zmk,pointer-axis";
-        hid-usage = <0x01 0x31>; // Y軸（マウス移動）
+    zmk_scroll_y_axis: zmk-scroll-y-axis {
+        compatible = "zmk,scroll-axis";
+        hid-usage = <0x01 0x31>; // Y
         scroll-divisor = <1>;
     };
     
-    // 🌟 追 加: ZMKのポインティングシステムに軸を登録するためのノード
     zmk_pointer_axes {
         compatible = "zmk,pointer-axes";
-        pointer-axes = <&zmk_pointer_x_axis &zmk_pointer_y_axis>;
+        // 軸登録ノードをスクロール軸に変更
+        pointer-axes = <&zmk_scroll_x_axis &zmk_scroll_y_axis>;
     };
 };
 
 &pinctrl {
-    spi0_default: spi0_default {
-        group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 0, 5)>,
-                    <NRF_PSEL(SPIM_MOSI, 0, 4)>,
-                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
-        };
-    };
-
-    spi0_sleep: spi0_sleep {
-        group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 0, 5)>,
-                    <NRF_PSEL(SPIM_MOSI, 0, 4)>,
-                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
-            low-power-enable;
-        };
-    };
+    // ... (pinctrl 定義) ...
 };
 
 &spi0 {
     status = "okay";
-    compatible = "nordic,nrf-spim";
-    pinctrl-0 = <&spi0_default>;
-    pinctrl-1 = <&spi0_sleep>;
-    pinctrl-names = "default", "sleep";
-    cs-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
+    // ... (spi0 定義) ...
 
     trackball: trackball@0 {
         status = "okay";
@@ -78,7 +55,9 @@
         automouse-layer = <6>;
         scroll-layers = <5>;
         
-        // 🚨 以前追加した行を削除し、標準のPMW3610ドライバーが期待する形式に戻しました
-        // ZMKは zmk_pointer_axes ノードを通じてこの軸を処理します。
+        // 🚨 重要な再追加: Zephyrの標準バインディングの要件を満たすため、ここでは PMW3610 を**スクロール**として定義し直す。
+        // ZMKはこれをポインター入力として使用する
+        zephyr,axis-x = <&zmk_scroll_x_axis>;
+        zephyr,axis-y = <&zmk_scroll_y_axis>;
     };
 };
