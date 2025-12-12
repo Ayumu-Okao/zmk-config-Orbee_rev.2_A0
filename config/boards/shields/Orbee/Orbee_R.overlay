@@ -65,3 +65,6 @@
     status = "okay";
 };
 
+&pmw3610 {
+    status = "disabled";
+};
