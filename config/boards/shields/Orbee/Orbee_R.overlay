@@ -1,62 +1,48 @@
-// Orbee_R.overlay (修正版)
-
-#include "Orbee.dtsi"
-
-&default_transform {
-    col-offset = <6>;
-};
-
-&kscan0 {
-    // ... (キーボードのマトリックス定義) ...
-};
-
-/ {
-    trackball_listener {
-        compatible = "zmk,input-listener";
-        device = <&trackball>;
-    };
-
-    // 💡 変更点: PMW3610をスクロール軸として強制定義し、エラーを回避する
-    zmk_scroll_x_axis: zmk-scroll-x-axis {
-        compatible = "zmk,scroll-axis";
-        hid-usage = <0x01 0x30>; // X
-        scroll-divisor = <1>;
-    };
-
-    zmk_scroll_y_axis: zmk-scroll-y-axis {
-        compatible = "zmk,scroll-axis";
-        hid-usage = <0x01 0x31>; // Y
-        scroll-divisor = <1>;
-    };
-    
-    zmk_pointer_axes {
-        compatible = "zmk,pointer-axes";
-        // 軸登録ノードをスクロール軸に変更
-        pointer-axes = <&zmk_scroll_x_axis &zmk_scroll_y_axis>;
-    };
-};
-
 &pinctrl {
-    // ... (pinctrl 定義) ...
+    spi0_default: spi0_default {
+        group1 {
+            // SCK, MOSI, MISO のピン設定
+            psels = <NRF_PSEL(SPIM_SCK, 0, 5)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 4)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
+        };
+    };
+
+    spi0_sleep: spi0_sleep {
+        group1 {
+            // SCK, MOSI, MISO のピン設定 (スリープ時)
+            psels = <NRF_PSEL(SPIM_SCK, 0, 5)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 4)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
+            low-power-enable;
+        };
+    };
 };
 
 &spi0 {
-    status = "okay";
-    // ... (spi0 定義) ...
+    compatible = "nordic,nrf-spim";
+
+    // 🚨 必須プロパティは 'status' の前に記述するのが安全
+    pinctrl-0 = <&spi0_default>;
+    pinctrl-1 = <&spi0_sleep>;
+    pinctrl-names = "default", "sleep";
+    
+    // 最後にノードを有効化
+    status = "okay"; 
+
+    // チップセレクト (CS) のピン定義
+    cs-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
 
     trackball: trackball@0 {
         status = "okay";
         compatible = "pixart,pmw3610";
         reg = <0>;
         spi-max-frequency = <2000000>;
-
         motion-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
-
         automouse-layer = <6>;
         scroll-layers = <5>;
         
-        // 🚨 重要な再追加: Zephyrの標準バインディングの要件を満たすため、ここでは PMW3610 を**スクロール**として定義し直す。
-        // ZMKはこれをポインター入力として使用する
+        // PMW3610の必須プロパティ（スクロール軸）
         zephyr,axis-x = <&zmk_scroll_x_axis>;
         zephyr,axis-y = <&zmk_scroll_y_axis>;
     };
