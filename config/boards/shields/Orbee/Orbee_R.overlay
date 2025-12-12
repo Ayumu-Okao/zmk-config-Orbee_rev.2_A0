@@ -21,14 +21,19 @@
 
     zmk_pointer_x_axis: zmk-pointer-x-axis {
         compatible = "zmk,pointer-axis";
-        hid-usage = <0x01 0x30>; // HID Usage for X (Generic Desktop Page)
+        hid-usage = <0x01 0x30>; // X軸（マウス移動）
         scroll-divisor = <1>;
     };
 
     zmk_pointer_y_axis: zmk-pointer-y-axis {
         compatible = "zmk,pointer-axis";
-        hid-usage = <0x01 0x31>; // HID Usage for Y (Generic Desktop Page)
+        hid-usage = <0x01 0x31>; // Y軸（マウス移動）
         scroll-divisor = <1>;
+    };
+    
+    zmk_pointer_axes {
+        compatible = "zmk,pointer-axes";
+        pointer-axes = <&zmk_pointer_x_axis &zmk_pointer_y_axis>;
     };
 };
 
@@ -70,7 +75,5 @@
         automouse-layer = <6>;
         scroll-layers = <5>;
         
-        zephyr,axis-x = <&zmk_pointer_x_axis>;
-        zephyr,axis-y = <&zmk_pointer_y_axis>;
     };
 };
