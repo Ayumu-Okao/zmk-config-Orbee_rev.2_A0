@@ -14,11 +14,13 @@
 };
 
 / {
+    // トラッキングボールの入力変化をZMKに伝えるリスナー
     trackball_listener {
         compatible = "zmk,input-listener";
         device = <&trackball>;
     };
 
+    // ZMKのポインター軸の定義
     zmk_pointer_x_axis: zmk-pointer-x-axis {
         compatible = "zmk,pointer-axis";
         hid-usage = <0x01 0x30>; // X軸（マウス移動）
@@ -31,6 +33,7 @@
         scroll-divisor = <1>;
     };
     
+    // 🌟 追 加: ZMKのポインティングシステムに軸を登録するためのノード
     zmk_pointer_axes {
         compatible = "zmk,pointer-axes";
         pointer-axes = <&zmk_pointer_x_axis &zmk_pointer_y_axis>;
@@ -75,5 +78,7 @@
         automouse-layer = <6>;
         scroll-layers = <5>;
         
+        // 🚨 以前追加した行を削除し、標準のPMW3610ドライバーが期待する形式に戻しました
+        // ZMKは zmk_pointer_axes ノードを通じてこの軸を処理します。
     };
 };
