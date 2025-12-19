@@ -1,29 +1,5 @@
 #include "Orbee.dtsi"
 
-/ {
-    trackball_listener {
-        compatible = "zmk,input-listener";
-        device = <&trackball>;
-    };
-
-    zmk_scroll_x_axis: zmk-scroll-x-axis {
-        compatible = "zmk,scroll-axis";
-        hid-usage = <0x01 0x30>;
-        scroll-divisor = <1>;
-    };
-
-    zmk_scroll_y_axis: zmk-scroll-y-axis {
-        compatible = "zmk,scroll-axis";
-        hid-usage = <0x01 0x31>;
-        scroll-divisor = <1>;
-    };
-    
-    zmk_pointer_axes {
-        compatible = "zmk,pointer-axes";
-        pointer-axes = <&zmk_scroll_x_axis &zmk_scroll_y_axis>;
-    };
-};
-
 &default_transform {
     col-offset = <6>;
 };
@@ -35,6 +11,13 @@
         <&xiao_d 8 GPIO_ACTIVE_HIGH>,
         <&xiao_d 7 GPIO_ACTIVE_HIGH>,
         <&gpio0 10 GPIO_ACTIVE_HIGH>;
+};
+
+/ {
+    trackball_listener {
+        compatible = "zmk,input-listener";
+        device = <&trackball>;
+    };
 };
 
 &pinctrl {
@@ -57,14 +40,11 @@
 };
 
 &spi0 {
+    status = "okay";
     compatible = "nordic,nrf-spim";
-
     pinctrl-0 = <&spi0_default>;
     pinctrl-1 = <&spi0_sleep>;
     pinctrl-names = "default", "sleep";
-    
-    status = "okay"; 
-
     cs-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
 
     trackball: trackball@0 {
@@ -72,11 +52,17 @@
         compatible = "pixart,pmw3610";
         reg = <0>;
         spi-max-frequency = <2000000>;
+
         motion-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
+
+        zephyr,axis-x = <0>;
+        zephyr,axis-y = <1>;
+
         automouse-layer = <6>;
         scroll-layers = <5>;
-        
-        axis-x = <&zmk_scroll_x_axis>;
-        axis-y = <&zmk_scroll_y_axis>;
     };
+};
+
+&right_encoder {
+    status = "okay";
 };
