@@ -1,11 +1,9 @@
 #include "Orbee.dtsi"
 
-/* 右側なのでキー配列を右にオフセット */
 &default_transform {
     col-offset = <6>;
 };
 
-/* Keyscan */
 &kscan0 {
     col-gpios =
         <&xiao_d 10 GPIO_ACTIVE_HIGH>,
@@ -15,15 +13,13 @@
         <&gpio0 10 GPIO_ACTIVE_HIGH>;
 };
 
-/* Trackball input listener */
- / {
+/ {
     trackball_listener {
         compatible = "zmk,input-listener";
         device = <&trackball>;
     };
 };
 
-/* SPI pin control */
 &pinctrl {
     spi0_default: spi0_default {
         group1 {
@@ -43,7 +39,6 @@
     };
 };
 
-/* SPI + PMW3610 trackball */
 &spi0 {
     status = "okay";
     compatible = "nordic,nrf-spim";
@@ -58,19 +53,13 @@
         reg = <0>;
         spi-max-frequency = <2000000>;
 
-        /* motion interrupt */
         motion-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
 
-        /* axis mapping */
         zephyr,axis-x = <INPUT_REL_X>;
         zephyr,axis-y = <INPUT_REL_Y>;
-
-        /* 👇 右側なので X だけ反転 */
-        zephyr,axis-x-invert;
     };
 };
 
-/* Right encoder */
 &right_encoder {
     status = "okay";
 };
